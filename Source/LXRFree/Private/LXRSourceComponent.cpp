@@ -139,7 +139,12 @@ void ULXRSourceComponent::BeginPlay()
 {
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypeQueries;
 	ObjectTypeQueries.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
-	UKismetSystemLibrary::SphereOverlapActors(this, GetOwner()->GetActorLocation(), 30.f, ObjectTypeQueries,NULL, {}, MyOverlappingActors);
+
+	TArray<AActor*> OutActors = MoveTemp(MyOverlappingActors);
+	UKismetSystemLibrary::SphereOverlapActors(this, GetOwner()->GetActorLocation(), 30.f,
+		ObjectTypeQueries,nullptr, {}, OutActors);
+	MyOverlappingActors = MoveTemp(OutActors);
+	
 	FindMyLightComponents();
 
 	for (const auto Component : MyLightComponents)
@@ -179,17 +184,7 @@ void ULXRSourceComponent::DeRegisterLight() const
 {
 	ULXRSubsystem* LightDetectionSubsystem = GetOwner()->GetWorld()->GetSubsystem<ULXRSubsystem>();
 	if (IsValid(LightDetectionSubsystem))
-		LightDetectionSubsystem->UnregisterLight(GetOwner());
-}
-
-TArray<AActor*>& ULXRSourceComponent::GetMyOverlappingActors()
-{
-	return MyOverlappingActors;
-}
-
-TArray<ULightComponent*> ULXRSourceComponent::GetMyLightComponents() const
-{
-	return MyLightComponents;
+		LightDetectionSubsystem->UnregisterLight(GetOwner());	
 }
 
 void ULXRSourceComponent::FindMyLightComponents()

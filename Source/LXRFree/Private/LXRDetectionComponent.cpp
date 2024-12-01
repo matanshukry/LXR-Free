@@ -572,10 +572,26 @@ void ULXRDetectionComponent::DoRelevantCheckOnSourceActor(const TWeakObjectPtr<A
 		return;
 	}
 
-	if (GetOwner() == LightSourceComponentOwner)
-		return;
 
 	const ULXRSourceComponent* LightSourceComponent = Cast<ULXRSourceComponent>(LightSourceComponentOwner->GetComponentByClass(ULXRSourceComponent::StaticClass()));
+
+	if (LightSourceComponent->OverrideIsRelevant)
+	{
+		if (LightSourceComponent->bDisable)
+		{
+			RemoveLightComponent(IsFromThread, LightSourceComponentOwner);
+		}
+		else
+		{
+			LightPassed(LightSourceComponentOwner, {});
+		}
+		
+		return;
+	}
+	
+	if (GetOwner() == LightSourceComponentOwner)
+		return;
+	
 	const TArray<ULightComponent*> LightComponents = LightSourceComponent->GetMyLightComponents();
 	const bool IsLightSourceEnabled = LightSourceComponent->IsEnabled();
 	if (LXRSubsystem->bSoloFound)
@@ -626,13 +642,18 @@ void ULXRDetectionComponent::DoRelevantCheckOnSourceActor(const TWeakObjectPtr<A
 		}
 		else
 		{
-			IsFromThread ? IncreaseFailCountIfNotAlwaysRelevantLightFromThread(LightSourceComponentOwner) : IncreaseFailCount(LightSourceComponentOwner);
-
-			if (RelevantLightsFailCounts[LightSourceComponentOwner] > MaxConsecutiveFails)
-			{
-				IsFromThread ? CheckAndRemoveIfLightNotRelevantFromThread(LightSourceComponentOwner) : CheckAndRemoveIfLightNotRelevant(LightSourceComponentOwner);
-			}
+			RemoveLightComponent(IsFromThread, LightSourceComponentOwner);
 		}
+	}
+}
+
+void ULXRDetectionComponent::RemoveLightComponent(bool IsFromThread, const TWeakObjectPtr<AActor>& LightSourceComponentOwner)
+{
+	IsFromThread ? IncreaseFailCountIfNotAlwaysRelevantLightFromThread(LightSourceComponentOwner) : IncreaseFailCount(LightSourceComponentOwner);
+
+	if (RelevantLightsFailCounts[LightSourceComponentOwner] > MaxConsecutiveFails)
+	{
+		IsFromThread ? CheckAndRemoveIfLightNotRelevantFromThread(LightSourceComponentOwner) : CheckAndRemoveIfLightNotRelevant(LightSourceComponentOwner);
 	}
 }
 
@@ -673,6 +694,13 @@ void ULXRDetectionComponent::GetLXR()
 		if (IsValid(LightActor.Get()))
 		{
 			const ULXRSourceComponent* LightSourceComponent = Cast<ULXRSourceComponent>(LightActor->GetComponentByClass(ULXRSourceComponent::StaticClass()));
+			if (LightSourceComponent->OverrideIsRelevant)
+			{
+				CombinedLightColors.Add(LightSourceComponent->OverrideCustomLightColor);
+				CombinedLXRIntensity += LightSourceComponent->OverrideCustomLightIntensity;
+				
+				continue;
+			}
 			TArray<ULightComponent*> LightComponents = LightSourceComponent->GetMyLightComponents();
 
 			TArray<int> PassedComps = LightsPassedComponents[LightActor];

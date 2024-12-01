@@ -48,7 +48,7 @@ public:
 	bool bSolo = false;
 	
 	//Disables component
-	UPROPERTY(EditAnywhere, Category="LXR|Source|Debug", meta=(AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="LXR|Source|Debug", meta=(AdvancedDisplay))
 	bool bDisable = false;
 
 	
@@ -93,15 +93,26 @@ public:
 	
 	//List of Detected actors.
 	UPROPERTY(BlueprintReadWrite, Category="LXR|Source")
-	TArray<AActor*> DetectedActors;
+	TArray<TObjectPtr<AActor>> DetectedActors;
 
 	//List of actors to ignore when checking visibility.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="LXR|Source")
-	TArray<AActor*> IgnoreVisibilityActors;
+	TArray<TObjectPtr<AActor>> IgnoreVisibilityActors;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="LXR|Source")
+	bool OverrideIsRelevant;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="LXR|Source")
+	FLinearColor OverrideCustomLightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="LXR|Source")
+	float OverrideCustomLightIntensity = 1.0f;
 
 	//IF owner does not implement ILightSource::IsEnabled, then use this function to determine if light source is enabled.
-	UFUNCTION(BlueprintPure, Category="LXR|Source")
-	bool IsEnabled() const;
+	UFUNCTION(BlueprintPure, Category="LXR|Source", meta=(DisplayName="IsEnabled"))
+	bool K2_IsEnabled() const { return IsEnabled(); }
+			
+	virtual bool IsEnabled() const;
 
 	//IF owner does not implement ILightSource::IsLightComponentEnabled, then use this function to determine if light component is enabled.
 	UFUNCTION(BlueprintPure, Category="LXR|Source")
@@ -133,16 +144,15 @@ protected:
 public:
 	void RegisterLight();
 	void DeRegisterLight() const;
-	TArray<ULightComponent*> GetMyLightComponents() const;
-	TArray<AActor*>& GetMyOverlappingActors();
-
+	TArray<ULightComponent*> GetMyLightComponents() const { return MyLightComponents;}
+	TArray<TObjectPtr<AActor>>& GetMyOverlappingActors() { return MyOverlappingActors; }
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category="LXR|Source")
-	TArray<ULightComponent*> MyLightComponents;
+	TArray<TObjectPtr<ULightComponent>> MyLightComponents;
 
 	UPROPERTY()
-	TArray<AActor*> MyOverlappingActors;
+	TArray<TObjectPtr<AActor>> MyOverlappingActors;
 
 	void FindMyLightComponents();
 

@@ -212,7 +212,7 @@ public:
 
 	//List of actors to ignore when checking visibility.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="LXR|Detection")
-	TArray<AActor*> IgnoreVisibilityActors;
+	TArray<TObjectPtr<AActor>> IgnoreVisibilityActors;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="LXR|Detection")
 	TMap<int, FLinearColor> IlluminatedTargets;
@@ -237,6 +237,7 @@ private:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void GetLightSystemLights();
+	void RemoveLightComponent(bool IsFromThread, const TWeakObjectPtr<AActor>& LightSourceComponentOwner);
 
 	void AddLight(AActor* LightSource);
 	void RemoveLight(AActor* LightSource);
@@ -294,7 +295,7 @@ private:
 	ULXRSourceComponent* GetLightSourceComponentByTypeAndIndex(const ELightArrayType LightArrayType, int Index) const;
 
 	UPROPERTY()
-	ULXRSubsystem* LXRSubsystem;
+	TObjectPtr<ULXRSubsystem> LXRSubsystem;
 
 	bool bStop = false;
 	bool bUpdateOctreeLights = false;
@@ -370,5 +371,5 @@ private:
 	TMap<TWeakObjectPtr<AActor>, int> RelevantLightsFailCounts;
 
 	UPROPERTY()
-	USkeletalMeshComponent* SkeletalMeshComponent;
+	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent;
 };
