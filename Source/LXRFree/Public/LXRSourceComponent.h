@@ -88,7 +88,7 @@ public:
 	TArray<FLightSourceData> LightLXRColorMultipliers;
 
 	//List of LightComponents to exclude from LightDetection, Only used when GetMyLightComponentsMethodToUse is set to Class.
-	UPROPERTY(EditAnywhere, Category="LXR|Source", meta=(UseComponentPicker, AllowedClasses="LightComponent", EditCondition = "GetMyLightComponentsMethodToUse == EMethodToUse::Class"))
+	UPROPERTY(EditAnywhere, Category="LXR|Source", meta=(UseComponentPicker, AllowedClasses="LightComponent"))
 	TArray<FComponentReference> ExcludedLights;
 	
 	//List of Detected actors.
